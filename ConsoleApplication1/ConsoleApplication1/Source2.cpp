@@ -10,7 +10,9 @@
 
 using namespace std;
 
-static int n;
+static int n = 100000;
+static double *a = new double[n], *b = new double[n], *c = new double[n], *d = new double[n];
+static double *res1 = new double[n], *res2 = new double[n];
 
 double generate_double(int a, int b) //забавный генератор 
 {
@@ -45,7 +47,7 @@ double *sort_mass(double *a = new double[n])
 		{
 			if (a[j] > a[min_index]) min_index = j;
 		}
-		if (min_index != i) swap(a[i], a[min_index]);
+		if (min_index != i) swap(a[i], a[min_index]); //мен€ем если нужно
 	}
 	return a;
 }
@@ -68,13 +70,12 @@ int main()
 	srand(time(NULL));
 	setlocale(LC_ALL, "Russian"); //≈сли у вас линукс, то можете эту строчку убрать
 	cout << "¬ведите размерность массивов ";
-	cin >> n; //ќбща€ размерность дл€ всех массив
-	double *a = new double[n], *b = new double[n], *c = new double[n], *d = new double[n];
+	//cin >> n; //ќбща€ размерность дл€ всех массив
 
-	double *res1 = new double[n], *res2 = new double[n];
 	int proc = 0;
 	int cn = omp_get_max_threads();
 	cout << " оличество нитей максимум - " << cn << endl;
+	system("pause");
 	cout << "«аполнение массивов" << endl;
 #pragma omp parallel
 	{
