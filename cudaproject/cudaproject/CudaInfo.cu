@@ -1,6 +1,4 @@
 #include "CudaInfo.cuh";
-#include <stdio.h>
-#include <cuda_runtime_api.h>
 
 CudaInfo::CudaInfo()
 {

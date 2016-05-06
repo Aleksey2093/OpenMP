@@ -1,3 +1,18 @@
+#include <cstdio>
+#include <stdio.h>
+#include <stdlib.h>
+#include <iostream> //std
+#include <sstream>
+#include <fstream> //in out
+#include <locale.h> 
+#include <time.h>
+#include <omp.h>
+#include <cuda_runtime_api.h>
+#include "cuda_runtime.h"
+#include "device_launch_parameters.h"
+
+#define SIZE 3
+
 class CudaInfo
 {
 public:
@@ -6,7 +21,7 @@ public:
 	void Info();
 	int kernel();
 	int Opredelit();
-	int OpredelitUpgrade();
+	int OpredelitUpgrade(double **matrix, int n);
 private:
 
 };

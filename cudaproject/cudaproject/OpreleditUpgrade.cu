@@ -4,8 +4,6 @@
 #include "cuda_runtime.h"
 #include "device_launch_parameters.h"
 
-#define SIZE 3
-
 __host__
 void matrix_view(float(*array)[SIZE], char *q) {                  //вывод матрицы на экран
 	int i, j;
@@ -18,11 +16,11 @@ void matrix_view(float(*array)[SIZE], char *q) {                  //вывод матриц
 }
 
 __host__
-void matrix_rand(float(*array)[SIZE]) {               //заполнение случайным образом на девайсе
+void matrix_rand(float(*array)[SIZE], double **matrix, int n) {               //заполнение случайным образом на девайсе
 	int i, j;
-	for (i = 0; i<SIZE; i++)
-		for (j = 0; j<SIZE; j++)
-			array[i][j] = 1 + rand() % 16;
+	for (i = 0; i < SIZE; i++)
+		for (j = 0; j < SIZE; j++)
+			array[i][j] = (float)matrix[i][j];// 1 + rand() % 16;
 }
 
 __device__
@@ -47,15 +45,15 @@ void determinant(float(*mtx)[SIZE]) {             //ядро: приведение к треугольн
 	}
 }
 
-int CudaInfo::OpredelitUpgrade(void)
+int CudaInfo::OpredelitUpgrade(double **matrix, int n)
 {
 	int i;
 	float mtx_h[SIZE][SIZE], (*mtx_d)[SIZE];
 	long double det;
-	cudaMalloc((void **)&mtx_d, sizeof(float)*SIZE*SIZE);          //выделение пам€ти на устройстве
-	puts("исходна€ матрица\n");
-	matrix_rand(mtx_h);
-	cudaMemcpy(mtx_d, mtx_h, sizeof(float)*SIZE*SIZE,       //копирование массива в пам€ть видеокарты
+	cudaMalloc((void **)&mtx_d, sizeof(float)*SIZE*SIZE);          //выделение пам§ти на устройстве
+	puts("»сходна€ матрица\n");
+	matrix_rand(mtx_h,matrix,n);
+	cudaMemcpy(mtx_d, mtx_h, sizeof(float)*SIZE*SIZE,       //копирование массива в пам§ть видеокарты
 		cudaMemcpyHostToDevice);
 	matrix_view(mtx_h, "| %.0f ");
 	dim3 threadsPerBlock(16, 16);
@@ -64,7 +62,7 @@ int CudaInfo::OpredelitUpgrade(void)
 	cudaThreadSynchronize();
 	cudaMemcpy(mtx_h, mtx_d, sizeof(float)*SIZE*SIZE,       //копирование массива из пам€ти видеокарты
 		cudaMemcpyDeviceToHost);
-	puts("трeугольный вид\n");
+	puts("“реугольный вид\n");
 	matrix_view(mtx_h, "| %.8f ");
 	det = 1;
 	for (i = 0; i<SIZE; i++) {

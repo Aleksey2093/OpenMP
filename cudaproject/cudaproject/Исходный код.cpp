@@ -1,12 +1,3 @@
-#include <cstdio>
-#include <stdio.h>
-#include <stdlib.h>
-#include <iostream> //std
-#include <sstream>
-#include <fstream> //in out
-#include <locale.h> 
-#include <time.h>
-#include <omp.h>
 #include "CudaInfo.cuh";
 
 using namespace::std;
@@ -150,8 +141,7 @@ double math_Cuda(double **matrix, int n)
 	CudaInfo *cuda = new CudaInfo();
 	cuda->Info();
 	cout << "Расчет версии cuda" << endl;
-	cuda->Opredelit();
-	cuda->OpredelitUpgrade();
+	cuda->OpredelitUpgrade(matrix, n);
 	return 1;
 }
 
@@ -161,14 +151,26 @@ double math_Gibrid(double **matrix, int n)
 	return 1;
 }
 
+double** getMatrix(double matrix[SIZE][SIZE])
+{
+	double **mat = new double*[SIZE];
+	for (int i = 0; i < SIZE; i++)
+	{
+		mat[i] = new double[SIZE];
+		for (int j = 0; j < SIZE; j++)
+			mat[i][j] = matrix[i][j];
+	}
+	return mat;
+}
+
 int main()
 {
 	srand(time(NULL));
 	setlocale(LC_ALL, "Russian");
-	long int n;
-	cout << "Введите размер матрицы: ";
-	cin >> n;
-	double **matrix = new double*[n];
+	long int n = SIZE;
+	//cout << "Введите размер матрицы: ";
+	//cin >> n;
+	double mat[SIZE][SIZE], **matrix = new double*[n];
 	cout << "Исходная матрица: " << endl;
 	int num = 1;
 	for (int i = 0; i < n; i++)
@@ -176,10 +178,11 @@ int main()
 		matrix[i] = new double[n];
 		for (int j = 0; j < n; j++)
 		{
-			matrix[i][j] = 1 + rand() % 100000;
+			mat[i][j] = 1 + rand() % 100;
 			num++;
 		}
 	}
+	matrix = getMatrix(mat);
 	double res0 = math_Line(matrix, n);
 	cout << endl;
 	if (res0 != -1)
@@ -188,9 +191,12 @@ int main()
 		printf("This compiled code has no OpenMP support:( Check your compiler: if it supports OpenMP you must apply a correspondent compiler key.\n");
 		goto exit;
 #endif
+		matrix = getMatrix(mat);
 		double res1 = math_Openmp(matrix, n);
 		printf("Производительность omp %f \n", fabs(res0 / res1));// / res1);
+		matrix = getMatrix(mat);
 		double res2 = math_Cuda(matrix, n);
+		matrix = getMatrix(mat);
 		double res3 = math_Gibrid(matrix, n);
 	}
 exit:
