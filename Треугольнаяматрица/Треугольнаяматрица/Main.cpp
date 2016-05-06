@@ -16,13 +16,8 @@ bool printMatrixToConsole(string title, float **matrix, int n, int m)
 	cout << title << endl;
 	for (int i = 0; i < n; i++)
 	{
-		matrix[i] = new float[m];
 		for (int j = 0; j < m; j++)
-		{
-			matrix[i][j] = (i + 1) * (i + 1) + j;
-			matrix[i][j] += (((float)(i + 1) * (float)(j + 1)) / (float)rand());// *0.1f;
 			cout << matrix[i][j] << "\t\t";
-		}
 		cout << endl;
 	}
 	cout << "-----------------------------" << endl << endl;
