@@ -3,8 +3,8 @@
 #include <stdlib.h>
 #include <iostream> //std
 #include <sstream>
-#include <fstream> //ввод вывод
-#include <locale.h> //Если у вас линукс, то можете эту строчку убрать
+#include <fstream> //in out
+#include <locale.h> 
 #include <time.h>
 #include <omp.h>
 
@@ -29,9 +29,9 @@ bool printMatrixToConsole(string title, float **matrix, int n, int m)
 	return true;
 }
 
-int Расчет_последовательно(float **matrix, int n, int m)
+int math_Line(float **matrix, int n, int m)
 {
-	int перестановки = 0;
+	int lol = 0;
 	cout << "Расчет последовательной версии" << endl;
 	for (int i = 0; i < n-1; i++)
 	{
@@ -51,7 +51,7 @@ int Расчет_последовательно(float **matrix, int n, int m)
 			float *row = matrix[maxN];
 			matrix[maxN] = matrix[i];
 			matrix[i] = row;
-			перестановки++;
+			lol++;
 		}
 		else if (maxValue == 0)
 			return maxValue;
@@ -68,24 +68,24 @@ int Расчет_последовательно(float **matrix, int n, int m)
 			}
 		}
 	}
-	cout << "Перестановок " << перестановки << endl;
+	cout << "Перестановок " << lol << endl;
 	printMatrixToConsole("Последовано посчитанная матрица", matrix, n, m);
 	return 1;
 }
 
-int Расчет_openmp(float **matrix, int n, int m)
+int math_Openmp(float **matrix, int n, int m)
 {
 	cout << "Расчет версии openmp" << endl;
 	return 1;
 }
 
-int Расчет_cuda(float **matrix, int n, int m)
+int math_Cuda(float **matrix, int n, int m)
 {
 	cout << "Расчет версии cuda" << endl;
 	return 1;
 }
 
-int Расчет_гибридно(float **matrix, int n, int m)
+int math_Gibrid(float **matrix, int n, int m)
 {
 	cout << "Расчет гибридной версии" << endl;
 	return 1;
@@ -94,7 +94,7 @@ int Расчет_гибридно(float **matrix, int n, int m)
 int main()
 {
 	srand(time(NULL));
-	setlocale(LC_ALL, "Russian"); //Если у вас линукс, то можете эту строчку убрать
+	setlocale(LC_ALL, "Russian");
 	long int n, m;
 	cout << "Введите количество строк матрицы: ";
 	cin >> n;
@@ -114,10 +114,10 @@ int main()
 		}
 		cout << endl;
 	}
-	int res0 = Расчет_последовательно(matrix, n, m);
-	int res1 = Расчет_гибридно(matrix, n, m);
-	int res2 = Расчет_openmp(matrix, n, m);
-	int res3 = Расчет_гибридно(matrix, n, m);
+	int res0 = math_Line(matrix, n, m);
+	int res1 = math_Openmp(matrix, n, m);
+	int res2 = math_Cuda(matrix, n, m);
+	int res3 = math_Gibrid(matrix, n, m);
 
 	system("pause");
 }
