@@ -32,7 +32,7 @@ bool printMatrixToConsole(string title, float **matrix, int n, int m)
 int Расчет_последовательно(float **matrix, int n, int m)
 {
 	int перестановки = 0;
-	cout << "Расчет последовательной версии";
+	cout << "Расчет последовательной версии" << endl;
 	for (int i = 0; i < n-1; i++)
 	{
 		int maxN = i;
@@ -61,12 +61,14 @@ int Расчет_последовательно(float **matrix, int n, int m)
 		for (int j = i + 1; j < n; j++)
 		{
 			float k = matrix[j][i];
+			matrix[j][i] = 0;
 			for (int c = i+1; c < m; c++)
 			{
 				matrix[j][c] = matrix[j][c] - matrix[j][c] * k;
 			}
 		}
 	}
+	cout << "Перестановок " << перестановки << endl;
 	printMatrixToConsole("Последовано посчитанная матрица", matrix, n, m);
 	return 1;
 }
