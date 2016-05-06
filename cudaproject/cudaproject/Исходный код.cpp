@@ -7,6 +7,7 @@
 #include <locale.h> 
 #include <time.h>
 #include <omp.h>
+#include "CudaInfo.cuh";
 
 using namespace::std;
 
@@ -30,7 +31,7 @@ double math_Line(double **matrix, int n)
 {
 	cout << "Расчет последовательной версии" << endl;
 	double t1 = omp_get_wtime(), t2;
-	for (int i = 0; i < n-1; i++)
+	for (int i = 0; i < n - 1; i++)
 	{
 		int maxN = i;
 		double maxValue = fabs(matrix[i][i]);
@@ -51,20 +52,20 @@ double math_Line(double **matrix, int n)
 		}
 		else if (maxValue == 0)
 			return -1;
-		
+
 		double val = matrix[i][i];
 
 		for (int j = i + 1; j < n; j++)
 		{
-			double k = matrix[j][i]/val;
+			double k = matrix[j][i] / val;
 			matrix[j][i] = 0;
-			for (int c = i+1; c < n; c++)
+			for (int c = i + 1; c < n; c++)
 			{
 				matrix[j][c] = matrix[j][c] - matrix[j][c] * k;
 			}
 		}
 	}
-    long double diagol = matrix[0][0];
+	long double diagol = matrix[0][0];
 	for (int i = 1; i < n; i++)
 		diagol *= matrix[i][i];
 	t2 = omp_get_wtime();
@@ -90,7 +91,7 @@ double math_Openmp(double **matrix, int n)
 		{
 			int maxN = i;
 			double maxValue = fabs(matrix[i][i]);
-//#pragma omp parallel for num_threads(20)
+			//#pragma omp parallel for num_threads(20)
 			for (int j = i + 1; j < n; j++)
 			{
 				double val = fabs(matrix[j][i]);
@@ -112,10 +113,10 @@ double math_Openmp(double **matrix, int n)
 			}
 
 			double value = matrix[i][i];
-//#pragma omp parallel for num_threads(20)
+			//#pragma omp parallel for num_threads(20)
 			for (int j = i + 1; j < n; j++)
 			{
-				double k = matrix[j][i]/value;
+				double k = matrix[j][i] / value;
 				matrix[j][i] = 0;
 				for (int c = i + 1; c < n; c++)
 				{
@@ -146,7 +147,11 @@ double math_Openmp(double **matrix, int n)
 
 double math_Cuda(double **matrix, int n)
 {
+	CudaInfo *cuda = new CudaInfo();
+	cuda->Info();
 	cout << "Расчет версии cuda" << endl;
+	cuda->Opredelit();
+	cuda->OpredelitUpgrade();
 	return 1;
 }
 
@@ -164,14 +169,14 @@ int main()
 	cout << "Введите размер матрицы: ";
 	cin >> n;
 	double **matrix = new double*[n];
-	cout << "Исходная матрица: "<< endl;
+	cout << "Исходная матрица: " << endl;
 	int num = 1;
 	for (int i = 0; i < n; i++)
 	{
 		matrix[i] = new double[n];
 		for (int j = 0; j < n; j++)
 		{
-			matrix[i][j] = 1 + rand()%100000; 
+			matrix[i][j] = 1 + rand() % 100000;
 			num++;
 		}
 	}
@@ -188,6 +193,6 @@ int main()
 		double res2 = math_Cuda(matrix, n);
 		double res3 = math_Gibrid(matrix, n);
 	}
-	exit:
+exit:
 	system("pause");
 }
