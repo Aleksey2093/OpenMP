@@ -1,12 +1,4 @@
-#include <cstdio>
-#include <stdio.h>
-#include <stdlib.h>
-#include <iostream> //std
-#include <sstream>
-#include <fstream> //in out
-#include <locale.h> 
-#include <time.h>
-#include <omp.h>
+#include "CudaInfo.cuh";
 
 using namespace::std;
 
@@ -30,7 +22,7 @@ double math_Line(double **matrix, int n)
 {
 	cout << "Расчет последовательной версии" << endl;
 	double t1 = omp_get_wtime(), t2;
-	for (int i = 0; i < n-1; i++)
+	for (int i = 0; i < n - 1; i++)
 	{
 		int maxN = i;
 		double maxValue = fabs(matrix[i][i]);
@@ -51,20 +43,20 @@ double math_Line(double **matrix, int n)
 		}
 		else if (maxValue == 0)
 			return -1;
-		
+
 		double val = matrix[i][i];
 
 		for (int j = i + 1; j < n; j++)
 		{
-			double k = matrix[j][i]/val;
+			double k = matrix[j][i] / val;
 			matrix[j][i] = 0;
-			for (int c = i+1; c < n; c++)
+			for (int c = i + 1; c < n; c++)
 			{
 				matrix[j][c] = matrix[j][c] - matrix[j][c] * k;
 			}
 		}
 	}
-    long double diagol = matrix[0][0];
+	long double diagol = matrix[0][0];
 	for (int i = 1; i < n; i++)
 		diagol *= matrix[i][i];
 	t2 = omp_get_wtime();
@@ -90,7 +82,7 @@ double math_Openmp(double **matrix, int n)
 		{
 			int maxN = i;
 			double maxValue = fabs(matrix[i][i]);
-//#pragma omp parallel for num_threads(20)
+			//#pragma omp parallel for num_threads(20)
 			for (int j = i + 1; j < n; j++)
 			{
 				double val = fabs(matrix[j][i]);
@@ -112,10 +104,10 @@ double math_Openmp(double **matrix, int n)
 			}
 
 			double value = matrix[i][i];
-//#pragma omp parallel for num_threads(20)
+			//#pragma omp parallel for num_threads(20)
 			for (int j = i + 1; j < n; j++)
 			{
-				double k = matrix[j][i]/value;
+				double k = matrix[j][i] / value;
 				matrix[j][i] = 0;
 				for (int c = i + 1; c < n; c++)
 				{
@@ -146,7 +138,10 @@ double math_Openmp(double **matrix, int n)
 
 double math_Cuda(double **matrix, int n)
 {
+	CudaInfo *cuda = new CudaInfo();
+	cuda->Info();
 	cout << "Расчет версии cuda" << endl;
+	cuda->OpredelitUpgrade(matrix, n);
 	return 1;
 }
 
@@ -156,25 +151,38 @@ double math_Gibrid(double **matrix, int n)
 	return 1;
 }
 
+double** getMatrix(double matrix[SIZE][SIZE])
+{
+	double **mat = new double*[SIZE];
+	for (int i = 0; i < SIZE; i++)
+	{
+		mat[i] = new double[SIZE];
+		for (int j = 0; j < SIZE; j++)
+			mat[i][j] = matrix[i][j];
+	}
+	return mat;
+}
+
 int main()
 {
 	srand(time(NULL));
 	setlocale(LC_ALL, "Russian");
-	long int n;
-	cout << "Введите размер матрицы: ";
-	cin >> n;
-	double **matrix = new double*[n];
-	cout << "Исходная матрица: "<< endl;
+	long int n = SIZE;
+	//cout << "Введите размер матрицы: ";
+	//cin >> n;
+	double mat[SIZE][SIZE], **matrix = new double*[n];
+	cout << "Исходная матрица: " << endl;
 	int num = 1;
 	for (int i = 0; i < n; i++)
 	{
 		matrix[i] = new double[n];
 		for (int j = 0; j < n; j++)
 		{
-			matrix[i][j] = 1 + rand()%100000; 
+			mat[i][j] = 1 + rand() % 100;
 			num++;
 		}
 	}
+	matrix = getMatrix(mat);
 	double res0 = math_Line(matrix, n);
 	cout << endl;
 	if (res0 != -1)
@@ -183,11 +191,14 @@ int main()
 		printf("This compiled code has no OpenMP support:( Check your compiler: if it supports OpenMP you must apply a correspondent compiler key.\n");
 		goto exit;
 #endif
+		matrix = getMatrix(mat);
 		double res1 = math_Openmp(matrix, n);
 		printf("Производительность omp %f \n", fabs(res0 / res1));// / res1);
+		matrix = getMatrix(mat);
 		double res2 = math_Cuda(matrix, n);
+		matrix = getMatrix(mat);
 		double res3 = math_Gibrid(matrix, n);
 	}
-	exit:
+exit:
 	system("pause");
 }
