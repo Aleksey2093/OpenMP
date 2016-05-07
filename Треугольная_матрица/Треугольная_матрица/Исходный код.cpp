@@ -2,7 +2,7 @@
 
 using namespace::std;
 
-bool printMatrixToConsole(string title, double **matrix, int n, double diagol)
+bool printMatrixToConsole(string title, float **matrix, int n, float diagol)
 {
 	cout << endl << "-----------------------------" << endl;
 	cout << title << endl;
@@ -18,17 +18,17 @@ bool printMatrixToConsole(string title, double **matrix, int n, double diagol)
 	return true;
 }
 
-double math_Line(double **matrix, int n)
+float math_Line(float **matrix, int n)
 {
 	cout << "Расчет последовательной версии" << endl;
-	double t1 = omp_get_wtime(), t2;
+	float t1 = omp_get_wtime(), t2;
 	for (int i = 0; i < n - 1; i++)
 	{
 		int maxN = i;
-		double maxValue = fabs(matrix[i][i]);
+		float maxValue = fabs(matrix[i][i]);
 		for (int j = i + 1; j < n; j++)
 		{
-			double val = fabs(matrix[j][i]);
+			float val = fabs(matrix[j][i]);
 			if (val > maxValue)
 			{
 				maxN = j;
@@ -37,18 +37,21 @@ double math_Line(double **matrix, int n)
 		}
 		if (maxN > i)
 		{
-			double *row = matrix[maxN];
+			float *row = matrix[maxN];
 			matrix[maxN] = matrix[i];
 			matrix[i] = row;
 		}
 		else if (maxValue == 0)
-			return -1;
+		{
+			cout << "null row - " << i << endl;
+			//return -1;
+		}
 
-		double val = matrix[i][i];
+		float val = matrix[i][i];
 
 		for (int j = i + 1; j < n; j++)
 		{
-			double k = matrix[j][i] / val;
+			float k = matrix[j][i] / val;
 			matrix[j][i] = 0;
 			for (int c = i + 1; c < n; c++)
 			{
@@ -56,11 +59,11 @@ double math_Line(double **matrix, int n)
 			}
 		}
 	}
-	long double diagol = matrix[0][0];
+	long float diagol = matrix[0][0];
 	for (int i = 1; i < n; i++)
 		diagol *= matrix[i][i];
 	t2 = omp_get_wtime();
-	double start = (t2 - t1);
+	float start = (t2 - t1);
 	printf("Время последовательной версии - %.10f \n", start);
 	if (diagol != 0)
 		printf("Определитель - %.20f \n", diagol);
@@ -70,22 +73,22 @@ double math_Line(double **matrix, int n)
 	return start;
 }
 
-double math_Openmp(double **matrix, int n)
+float math_Openmp(float **matrix, int n)
 {
 	cout << "Расчет версии openmp" << endl;
-	double t1 = omp_get_wtime(), t2;
-	long double diagol;
+	float t1 = omp_get_wtime(), t2;
+	long float diagol;
 #pragma omp parallel num_threads(20)
 	{
 #pragma omp for
 		for (int i = 0; i < n - 1; i++)
 		{
 			int maxN = i;
-			double maxValue = fabs(matrix[i][i]);
+			float maxValue = fabs(matrix[i][i]);
 			//#pragma omp parallel for num_threads(20)
 			for (int j = i + 1; j < n; j++)
 			{
-				double val = fabs(matrix[j][i]);
+				float val = fabs(matrix[j][i]);
 				if (val > maxValue)
 				{
 					maxN = j;
@@ -94,7 +97,7 @@ double math_Openmp(double **matrix, int n)
 			}
 			if (maxN > i)
 			{
-				double *row = matrix[maxN];
+				float *row = matrix[maxN];
 				matrix[maxN] = matrix[i];
 				matrix[i] = row;
 			}
@@ -103,11 +106,11 @@ double math_Openmp(double **matrix, int n)
 				cout << "Нулевой элемент" << endl;
 			}
 
-			double value = matrix[i][i];
+			float value = matrix[i][i];
 			//#pragma omp parallel for num_threads(20)
 			for (int j = i + 1; j < n; j++)
 			{
-				double k = matrix[j][i] / value;
+				float k = matrix[j][i] / value;
 				matrix[j][i] = 0;
 				for (int c = i + 1; c < n; c++)
 				{
@@ -125,18 +128,18 @@ double math_Openmp(double **matrix, int n)
 
 	}
 	t2 = omp_get_wtime();
-	double start = (t2 - t1);
+	float start = (t2 - t1);
 	printf("Время omp версии - %.10f \n", start);
 	if (diagol != 0)
 		printf("Определитель - %.20f \n", diagol);
 	else
 		cout << "Определитель - 0 " << endl;
 	if (n < 10)
-		printMatrixToConsole("Последовательная", matrix, n, diagol);
+		printMatrixToConsole("OMP матрица", matrix, n, diagol);
 	return start;
 }
 
-double math_Cuda(double **matrix, int n)
+float math_Cuda(float matrix[SIZE][SIZE], int n)
 {
 	CudaInfo *cuda = new CudaInfo();
 	cuda->Info();
@@ -145,18 +148,18 @@ double math_Cuda(double **matrix, int n)
 	return 1;
 }
 
-double math_Gibrid(double **matrix, int n)
+float math_Gibrid(float matrix[SIZE][SIZE], int n)
 {
 	cout << "Расчет гибридной версии" << endl;
 	return 1;
 }
 
-double** getMatrix(double matrix[SIZE][SIZE])
+float** getMatrix(float matrix[SIZE][SIZE])
 {
-	double **mat = new double*[SIZE];
+	float **mat = new float*[SIZE];
 	for (int i = 0; i < SIZE; i++)
 	{
-		mat[i] = new double[SIZE];
+		mat[i] = new float[SIZE];
 		for (int j = 0; j < SIZE; j++)
 			mat[i][j] = matrix[i][j];
 	}
@@ -170,34 +173,40 @@ int main()
 	long int n = SIZE;
 	//cout << "Введите размер матрицы: ";
 	//cin >> n;
-	double mat[SIZE][SIZE], **matrix = new double*[n];
+	float mat[SIZE][SIZE], **matrix = new float*[n];
 	cout << "Исходная матрица: " << endl;
 	int num = 1;
 	for (int i = 0; i < n; i++)
 	{
-		matrix[i] = new double[n];
+		matrix[i] = new float[n];
 		for (int j = 0; j < n; j++)
 		{
-			mat[i][j] = 1 + rand() % 100;
+			mat[i][j] = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
+			mat[i][j] = mat[i][j] + (1 + rand() % 30);
+			// (float)(1 + rand() % 1000) + (float)1 / (float)(1 + rand() % 1000);
 			num++;
 		}
 	}
 	matrix = getMatrix(mat);
-	double res0 = math_Line(matrix, n);
+	if (n < 10)
+		printMatrixToConsole("Исходная матрица", matrix, n, 0);
+	float res0 = math_Line(matrix, n);
 	cout << endl;
-	if (res0 != -1)
+	if (res0 != -5)
 	{
 #ifndef _OPENMP
 		printf("This compiled code has no OpenMP support:( Check your compiler: if it supports OpenMP you must apply a correspondent compiler key.\n");
 		goto exit;
 #endif
 		matrix = getMatrix(mat);
-		double res1 = math_Openmp(matrix, n);
+		float res1 = math_Openmp(matrix, n);
 		printf("Производительность omp %f \n", fabs(res0 / res1));// / res1);
-		matrix = getMatrix(mat);
-		double res2 = math_Cuda(matrix, n);
-		matrix = getMatrix(mat);
-		double res3 = math_Gibrid(matrix, n);
+		float res2 = math_Cuda(mat, n);
+		float res3 = math_Gibrid(mat, n);
+	}
+	else
+	{
+		cout << "Обнаружены нули" << endl;
 	}
 exit:
 	system("pause");

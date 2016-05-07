@@ -11,7 +11,7 @@
 #include "cuda_runtime.h"
 #include "device_launch_parameters.h"
 
-#define SIZE 3
+#define SIZE 99
 
 class CudaInfo
 {
@@ -21,7 +21,7 @@ public:
 	void Info();
 	int kernel();
 	int Opredelit();
-	int OpredelitUpgrade(double **matrix, int n);
+	int OpredelitUpgrade(float matrix[SIZE][SIZE], int n);
 private:
 
 };

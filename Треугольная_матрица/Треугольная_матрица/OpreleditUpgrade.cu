@@ -20,7 +20,7 @@ void matrix_rand(float(*array)[SIZE], double **matrix, int n) {               //
 	int i, j;
 	for (i = 0; i < SIZE; i++)
 		for (j = 0; j < SIZE; j++)
-			array[i][j] = (float)matrix[i][j];// 1 + rand() % 16;
+			array[i][j] = /*matrix[i][j]*/ 1 + rand() % 16;
 }
 
 __device__
@@ -32,7 +32,7 @@ void subrow(float(*array)[SIZE], int m, int n, float k) {         //вычитание ст
 
 __global__
 void determinant(float(*mtx)[SIZE]) {             //ядро: приведение к треугольному виду
-	int i = i = blockIdx.x*blockDim.x + threadIdx.x;
+	int i = blockIdx.x*blockDim.x + threadIdx.x;
 	int j;
 	float coeff;
 	for (j = 0; j<SIZE - 1; j++) {
@@ -45,32 +45,37 @@ void determinant(float(*mtx)[SIZE]) {             //ядро: приведение к треугольн
 	}
 }
 
-int CudaInfo::OpredelitUpgrade(double **matrix, int n)
+int CudaInfo::OpredelitUpgrade(float mtx_h[SIZE][SIZE], int n)//(double **matrix, int n)
 {
 	int i;
-	float mtx_h[SIZE][SIZE], (*mtx_d)[SIZE];
+	float /*mtx_h[SIZE][SIZE],*/ (*mtx_d)[SIZE];
 	long double det;
 	cudaMalloc((void **)&mtx_d, sizeof(float)*SIZE*SIZE);          //выделение пам§ти на устройстве
 	puts("»сходна€ матрица\n");
-	matrix_rand(mtx_h,matrix,n);
+//	matrix_rand(mtx_h,matrix,n);
+	time_t t1 = clock();
 	cudaMemcpy(mtx_d, mtx_h, sizeof(float)*SIZE*SIZE,       //копирование массива в пам§ть видеокарты
 		cudaMemcpyHostToDevice);
-	matrix_view(mtx_h, "| %.0f ");
-	dim3 threadsPerBlock(16, 16);
-	dim3 numBlock(SIZE / threadsPerBlock.x, SIZE / threadsPerBlock.y);
+	if (SIZE<10)
+		matrix_view(mtx_h, "| %.0f ");
+	dim3 threadsPerBlock(SIZE, SIZE, 1);
+	dim3 numBlock(SIZE / threadsPerBlock.x, SIZE / threadsPerBlock.y, 1);
 	determinant << <numBlock, threadsPerBlock >> >(mtx_d);                      //вызов €дра
 	cudaThreadSynchronize();
 	cudaMemcpy(mtx_h, mtx_d, sizeof(float)*SIZE*SIZE,       //копирование массива из пам€ти видеокарты
 		cudaMemcpyDeviceToHost);
 	puts("“реугольный вид\n");
+	if (SIZE<10)
 	matrix_view(mtx_h, "| %.8f ");
 	det = 1;
 	for (i = 0; i<SIZE; i++) {
-		printf("%.8f\n", mtx_h[i][i]);
+		//printf("%.8f\n", mtx_h[i][i]);
 		det *= mtx_h[i][i];
 	}
+	time_t t2 = clock();
+	double timerun = ((t2 - t1) / CLOCKS_PER_SEC);
+	printf("time work=%f\n",timerun);
 	printf("det=%.0Lf\n ", det);
 	cudaFree(mtx_d);
-	getchar();
 	return 0;
 }
