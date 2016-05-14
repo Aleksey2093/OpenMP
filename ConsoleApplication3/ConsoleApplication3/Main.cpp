@@ -8,9 +8,9 @@
 #include <time.h>
 #include <omp.h>
 
-#define SIZE 10000
+#define SIZE 20000
 
-static double tim1, tim2, tim3;
+
 
 double **mathLine(double **Matrix)
 {
@@ -179,7 +179,7 @@ double **mathoo(double **Matrix)
 	return Matrix;
 }
 
-void provMat(double **Matrix, double **Matrix2, double **Matrix3)
+void provMat(double **Matrix, double **Matrix2/*, double **Matrix3*/)
 {
 	printf("-------prov-------\n");
 #pragma omp parallel for
@@ -206,20 +206,20 @@ int main()
 	printf("This compiled code has no OpenMP support:( Check your compiler: if it supports OpenMP you must apply a correspondent compiler key.\n");
 	goto exit;
 #endif
-	double **Matrix = (double **)calloc(SIZE, sizeof(*Matrix));
-	double **Matrix2 = (double **)calloc(SIZE, sizeof(*Matrix2));
-	double **Matrix3 = (double **)calloc(SIZE, sizeof(*Matrix3));
+	double **Matrix = new double*[SIZE];//(double **)calloc(SIZE, sizeof(*Matrix));
+	double **Matrix2 = new double*[SIZE];//(double **)calloc(SIZE, sizeof(*Matrix2));
+	//double **Matrix3 = (double **)calloc(SIZE, sizeof(*Matrix3));
 	for (int i = 0; i < SIZE; i++)
 	{
-		Matrix[i] = (double*)calloc(SIZE, sizeof(*Matrix));
-		Matrix2[i] = (double*)calloc(SIZE, sizeof(*Matrix2));
-		Matrix3[i] = (double*)calloc(SIZE, sizeof(*Matrix3));
+		Matrix[i] = new double[SIZE];//(double*)calloc(SIZE, sizeof(*Matrix));
+		Matrix2[i] = new double[SIZE];//(double*)calloc(SIZE, sizeof(*Matrix2));
+		//Matrix3[i] = (double*)calloc(SIZE, sizeof(*Matrix3));
 		for (int j = 0; j < SIZE; j++)
 		{
 			double k = (100 + rand() % 1000)*0.01;
 			Matrix[i][j] = k;
 			Matrix2[i][j] = k;
-			Matrix3[i][j] = k;
+			//Matrix3[i][j] = k;
 		}
 	}
 	if (SIZE < 10)
@@ -241,10 +241,11 @@ int main()
 	printf("------omp------\n");
 	Matrix2 = mathOmp(Matrix2);
 	printf("------omp-2----\n");
-	Matrix3 = mathoo(Matrix3);
+	//Matrix3 = mathoo(Matrix3);
+	//provMat(Matrix,Matrix2);
 
-	provMat(Matrix,Matrix2,Matrix3);
-
-	exit:
+exit:
+	delete(Matrix);
+	delete(Matrix2);
 	system("pause");
 }
