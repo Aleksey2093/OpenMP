@@ -11,7 +11,7 @@
 #include "cuda_runtime.h"
 #include "device_launch_parameters.h"
 
-#define SIZE 99
+#define SIZE 7
 
 class CudaInfo
 {

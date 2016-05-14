@@ -44,7 +44,6 @@ float math_Line(float **matrix, int n)
 		else if (maxValue == 0)
 		{
 			cout << "null row - " << i << endl;
-			//return -1;
 		}
 
 		float val = matrix[i][i];
@@ -53,7 +52,7 @@ float math_Line(float **matrix, int n)
 		{
 			float k = matrix[j][i] / val;
 			matrix[j][i] = 0;
-			for (int c = i + 1; c < n; c++)
+			for (int c = i+1; c < n; c++)
 			{
 				matrix[j][c] = matrix[j][c] - matrix[j][c] * k;
 			}
