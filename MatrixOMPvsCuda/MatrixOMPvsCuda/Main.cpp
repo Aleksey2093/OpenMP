@@ -1,21 +1,12 @@
-#include <cstdio>
-#include <stdio.h>
-#include <stdlib.h>
-#include <iostream> //std
-#include <sstream>
-#include <fstream> //in out
-#include <locale.h> 
-#include <time.h>
-#include <omp.h>
+#include "Main.h"
 
-#define SIZE 999
-
-static double tim1, tim2, tim3;
+static double tim1;
+static double tim2;
 
 double **mathLine(double **Matrix)
 {
 	double determinant = 1; double t;
-	time_t end, start = clock();
+	double end, start = omp_get_wtime();
 	for (int i = 0; i < SIZE - 1; i++)
 	{
 		int maxN = i;
@@ -40,8 +31,8 @@ double **mathLine(double **Matrix)
 		}
 		else if (maxValue == 0)
 		{
-			printf("В матрице есть нуль");
-			return NULL;
+			printf("null in matrix %d\n",i);
+			//return NULL;
 		}
 
 		double val = Matrix[i][i];
@@ -51,12 +42,12 @@ double **mathLine(double **Matrix)
 		{
 			double k = Matrix[j][i] / val;
 			Matrix[j][i] = 0;
-			for (int c = i+1; c < SIZE; c++)
+			for (int c = i + 1; c < SIZE; c++)
 				Matrix[j][c] = Matrix[j][c] - Matrix[i][c] * k;
 		}
 	}
-	end = clock();
-	t = (end - start); t = t / CLOCKS_PER_SEC;
+	end = omp_get_wtime();
+	t = (end - start); tim1 = t;
 	printf("time: %f\n", t);
 	printf("determinant - %f\n", fabs(determinant));
 	if (SIZE < 10)
@@ -65,7 +56,7 @@ double **mathLine(double **Matrix)
 		{
 			for (int j = 0; j < SIZE; j++)
 			{
-				printf("%.4f\t",Matrix[i][j]);
+				printf("%.4f\t", Matrix[i][j]);
 			}
 			printf("\n");
 		}
@@ -79,22 +70,22 @@ double **mathOmp(double **Matrix)
 	int ndata = SIZE / omp_get_num_threads();
 	double determinant = 1, k, t, maxValue, tmp;
 	int pol = SIZE / (4), i, j, c, maxN;
-	time_t end, start = clock();
+	double end, start = omp_get_wtime();
 	for (i = 0; i < SIZE - 1; i++)
 	{
 #pragma omp parallel private (j,tmp) shared(maxN, maxValue)
 		{
-		#pragma omp sections
+#pragma omp sections
 		{
-		#pragma omp section
+#pragma omp section
 			maxN = i;
-		#pragma omp section
+#pragma omp section
 			maxValue = fabs(Matrix[i][i]);
 		}
-		#pragma omp for schedule(dynamic,pol)
+#pragma omp for schedule(dynamic,pol)
 		for (j = i + 1; j < SIZE; j++) //поиск максимального элемента
 		{
-            tmp = fabs(Matrix[j][i]);
+			tmp = fabs(Matrix[j][i]);
 			if (tmp > maxValue)
 			{
 				maxN = j;
@@ -111,17 +102,17 @@ double **mathOmp(double **Matrix)
 		}
 		determinant *= Matrix[i][i];
 #pragma omp parallel for private(k,c,j)
-			for (j = i + 1; j < SIZE; j++)
-			{
-				k = Matrix[j][i] / Matrix[i][i];
-				Matrix[j][i] = 0;
-				for (c = i + 1; c < SIZE; c++)
-					Matrix[j][c] = Matrix[j][c] - Matrix[i][c] * k;
-			}
+		for (j = i + 1; j < SIZE; j++)
+		{
+			k = Matrix[j][i] / Matrix[i][i];
+			Matrix[j][i] = 0;
+			for (c = i + 1; c < SIZE; c++)
+				Matrix[j][c] = Matrix[j][c] - Matrix[i][c] * k;
+		}
 	}
 
 	end = clock();
-	t = (end - start); t = t / CLOCKS_PER_SEC;
+	t = (end - start); tim2 = t;
 	printf("time: %f\n", t);
 	printf("determinant - %3.3f\n", fabs(determinant));
 	if (SIZE < 10)
@@ -152,7 +143,7 @@ void provMat(double **Matrix, double **Matrix2, double **Matrix3)
 			}
 			if (Matrix[i][j] != Matrix2[i][j])
 			{
-				printf("Matrix[%d][%d] - error",i,j);
+				printf("Matrix[%d][%d] - error", i, j);
 			}
 		}
 	}
@@ -165,19 +156,21 @@ int main()
 	printf("This compiled code has no OpenMP support:( Check your compiler: if it supports OpenMP you must apply a correspondent compiler key.\n");
 	goto exit;
 #endif
-	double **Matrix = (double **)calloc(SIZE, sizeof(*Matrix));
-	double **Matrix2 = (double **)calloc(SIZE, sizeof(*Matrix2));
-	double **Matrix3 = (double **)calloc(SIZE, sizeof(*Matrix3));
+	double **Matrix = new double*[SIZE];// (double **)calloc(SIZE, sizeof(*Matrix));
+	//double **Matrix2 = new double*[SIZE];// (double **)calloc(SIZE, sizeof(*Matrix2));
+	double **Matrix3 = new double*[SIZE];// (double **)calloc(SIZE, sizeof(*Matrix3));
+	srand(time(NULL));
+#pragma omp parallel for
 	for (int i = 0; i < SIZE; i++)
 	{
-		Matrix[i] = (double*)calloc(SIZE, sizeof(*Matrix));
-		Matrix2[i] = (double*)calloc(SIZE, sizeof(*Matrix2));
-		Matrix3[i] = (double*)calloc(SIZE, sizeof(*Matrix3));
+		Matrix[i] = new double[SIZE];// (double*)calloc(SIZE, sizeof(*Matrix));
+		//Matrix2[i] = new double[SIZE];// (double*)calloc(SIZE, sizeof(*Matrix2));
+		Matrix3[i] = new double[SIZE];// (double*)calloc(SIZE, sizeof(*Matrix3));
 		for (int j = 0; j < SIZE; j++)
 		{
-			double k = (100 + rand() % 1000)*0.01;
+			double k = (100 + rand() % 10000)*0.01;
 			Matrix[i][j] = k;
-			Matrix2[i][j] = k;
+			//Matrix2[i][j] = k;
 			Matrix3[i][j] = k;
 		}
 	}
@@ -187,7 +180,7 @@ int main()
 		{
 			for (int j = 0; j < SIZE; j++)
 			{
-				printf("%.4f\t", Matrix[i][j]);
+				printf("%.4f\t", Matrix3[i][j]);
 			}
 			printf("\n");
 		}
@@ -197,11 +190,15 @@ int main()
 	Matrix = mathLine(Matrix);
 	if (Matrix == NULL)
 		goto exit;
-	printf("------omp------\n");
-	Matrix2 = mathOmp(Matrix2);
+	/*printf("------omp------\n");
+	Matrix2 = mathOmp(Matrix2);*/
+	printf("-----cuda-start------\n");
+	Main *cu = new Main();
+	cu->getMatrixFromCuda(Matrix3);
 
-	provMat(Matrix,Matrix2,Matrix3);
+	
+	//provMat(Matrix, Matrix2, Matrix3);
 
-	exit:
+exit:
 	system("pause");
 }
