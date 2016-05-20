@@ -2,8 +2,7 @@
 #include "cuda_runtime.h"
 #include "device_launch_parameters.h"
 
-__device__ int Row;
-__device__ int Col;
+#include <cuda_runtime_api.h>
 
 __global__ void determ()
 {
@@ -12,18 +11,40 @@ __global__ void determ()
 
 __global__ void swaprow(float *Matrix, int row1, int row2, int n)
 {
+	float t;
 	int id = blockIdx.x + row1*n;
 	int id2 = blockIdx.x + row2*n;
-	float t = Matrix[id];
 	Matrix[id] = Matrix[id2];
 	Matrix[id2] = t;
 }
 
 
-__global__ void proizrow(float *Matrix, int row1, int n, float val)
+__global__ void proizrow(float *Matrix, int i, int j, int n, float val)
 {
-	__shared__ float koe[SIZE];
-
+	/*__shared__ float koe[SIZE];
+	int id = blockIdx.x + i*n;
+	float row1[SIZE];
+	if (blockIdx.x < SIZE) //первая строчка сетки нужная нам строка идем по ней и собираем нужную информацию
+	{
+		row1[blockIdx.x] = Matrix[id];
+		//printf("%.1f\t", row1[blockIdx.x]);
+	}
+	if (blockIdx.x >= SIZE)
+	{
+		for (int p = 0; p < SIZE; p++)
+		{
+			Matrix[blockIdx.x + j*n] = Matrix[blockIdx.x + j*n] + row1[p];
+		}
+	}*/
+	int id = blockIdx.x + i*n;
+	int id2 = blockIdx.x + j*n;
+	float t = Matrix[id2] - Matrix[id];// *Matrix[i*SIZE + j] / val;
+	if (id2 == i*SIZE + j)
+	{
+		Matrix[id2] = 0;
+	}
+	printf("(%.1f)", Matrix[i*SIZE + j]);
+	Matrix[id2] = t;
 }
 
 /*for (int j = i + 1; j < SIZE; j++)
@@ -47,7 +68,7 @@ __global__ void seamax(float *Matrix, int rowstart, int colstart, int n, int g, 
 			}
 		}*/
 	int id = threadIdx.x + blockDim.x * blockIdx.x;
-	__shared__ float maxblock[(SIZE + 127) / 128];// = new float[g]; //массив максимумов по блокам
+	__shared__ float maxblock[(SIZE + 127) / 128]; //массив максимумов по блокам
 	maxblock[threadIdx.x + blockDim.x * blockIdx.x] = Matrix[rowstart*n + colstart];
 	for (int i = 0; i < th; i++)
 	{
@@ -59,7 +80,6 @@ double** Main::getMatrixFromCuda(double** Matrix)
 {
 	int n = SIZE*SIZE;
 	float *dev_Matrix, *Matrixline = new float[n];
-	float* row1, rowc1, row2, rowc2; float max;
 	int g = (SIZE + 127) / 128, th = 128;
 	for (int i = 0; i < SIZE; i++)
 	{
@@ -68,9 +88,6 @@ double** Main::getMatrixFromCuda(double** Matrix)
 			Matrixline[i*SIZE + j] = Matrix[i][j];
 		}
 	}
-	/*cudaMalloc((void**)&row1, SIZE*sizeof(float));
-	cudaMalloc((void**)&row2, SIZE*sizeof(float));
-	cudaMalloc((void**)&max, sizeof(float));*/
 	cudaMalloc((void**)&dev_Matrix, n*sizeof(float));
 	cudaMemcpy(dev_Matrix, Matrixline, n*sizeof(float), cudaMemcpyHostToDevice);
 
@@ -110,19 +127,19 @@ double** Main::getMatrixFromCuda(double** Matrix)
 			else if (maxValue == 0)
 			{
 				printf("null in matrix\n");
-				//return NULL;
 			}
 			float val = Matrixline[i *SIZE + i];
 
-
-
-			/*for (int j = i + 1; j < SIZE; j++)
+			//cudaMemcpy(dev_Matrix, Matrixline, n*sizeof(float), cudaMemcpyHostToDevice);
+			for (int j = i + 1; j < SIZE; j++)
 			{
-				float k = Matrixline[j*SIZE + i] / val;
-				Matrixline[j*SIZE + i] = 0;
-				for (int c = i + 1; c < SIZE; c++)
-					Matrixline[j*SIZE + c] = Matrixline[j*SIZE + c] - Matrixline[i*SIZE + c] * k;
-			}*/
+				//float k = Matrixline[j * SIZE + i] / val;
+				cudaMemcpy(dev_Matrix, Matrixline, n*sizeof(float), cudaMemcpyHostToDevice);
+				proizrow << <SIZE, 1 >> >(dev_Matrix, i, j, SIZE, val);
+				cudaMemcpy(Matrixline, dev_Matrix, n*sizeof(float), cudaMemcpyDeviceToHost);
+			}
+			//cudaMemcpy(Matrixline, dev_Matrix, n*sizeof(float), cudaMemcpyDeviceToHost);
+
 			for (int i = 0; i < SIZE; i++)
 			{
 				for (int j = 0; j < SIZE; j++)
@@ -132,6 +149,14 @@ double** Main::getMatrixFromCuda(double** Matrix)
 				printf("\n");
 			}
 			printf("\n");
+			//__global__ void proizrow(float *Matrix, int i, int j, int n, float val)
+			/*for (int j = i + 1; j < SIZE; j++)
+			{
+				float k = Matrixline[j*SIZE + i] / val;
+				Matrixline[j*SIZE + i] = 0;
+				for (int c = i + 1; c < SIZE; c++)
+					Matrixline[j*SIZE + c] = Matrixline[j*SIZE + c] - Matrixline[i*SIZE + c] * k;
+			}*/
 		}
 	}
 
