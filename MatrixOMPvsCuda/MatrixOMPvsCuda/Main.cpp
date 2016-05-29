@@ -3,6 +3,8 @@
 static double tim1;
 static double tim2;
 
+Main *cu = new Main();
+
 double **mathLine(double **Matrix)
 {
 	double determinant = 1; double t;
@@ -48,6 +50,7 @@ double **mathLine(double **Matrix)
 	}
 	end = omp_get_wtime();
 	t = (end - start); tim1 = t;
+	cu->timelinever = t;
 	printf("time: %f\n", t);
 	printf("determinant - %f\n", fabs(determinant));
 	if (SIZE < 10)
@@ -56,7 +59,7 @@ double **mathLine(double **Matrix)
 		{
 			for (int j = 0; j < SIZE; j++)
 			{
-				printf("%.4f\t", Matrix[i][j]);
+				printf("%.2f\t", Matrix[i][j]);
 			}
 			printf("\n");
 		}
@@ -113,6 +116,7 @@ double **mathOmp(double **Matrix)
 
 	end = clock();
 	t = (end - start); tim2 = t;
+	cu->timeompver = t;
 	printf("time: %f\n", t);
 	printf("determinant - %3.3f\n", fabs(determinant));
 	if (SIZE < 10)
@@ -121,7 +125,7 @@ double **mathOmp(double **Matrix)
 		{
 			for (int j = 0; j < SIZE; j++)
 			{
-				printf("%.4f\t", Matrix[i][j]);
+				printf("%.2f\t", Matrix[i][j]);
 			}
 			printf("\n");
 		}
@@ -149,7 +153,6 @@ void provMat(double **Matrix, double **Matrix2, double **Matrix3)
 	}
 }
 
-
 int main()
 {
 #ifndef _OPENMP
@@ -160,7 +163,6 @@ int main()
 	//double **Matrix2 = new double*[SIZE];// (double **)calloc(SIZE, sizeof(*Matrix2));
 	double **Matrix3 = new double*[SIZE];// (double **)calloc(SIZE, sizeof(*Matrix3));
 	srand(time(NULL));
-#pragma omp parallel for
 	for (int i = 0; i < SIZE; i++)
 	{
 		Matrix[i] = new double[SIZE];// (double*)calloc(SIZE, sizeof(*Matrix));
@@ -180,7 +182,7 @@ int main()
 		{
 			for (int j = 0; j < SIZE; j++)
 			{
-				printf("%.4f\t", Matrix3[i][j]);
+				printf("%.2f\t", Matrix3[i][j]);
 			}
 			printf("\n");
 		}
@@ -193,10 +195,11 @@ int main()
 	/*printf("------omp------\n");
 	Matrix2 = mathOmp(Matrix2);*/
 	printf("-----cuda-start------\n");
-	Main *cu = new Main();
-	cu->getMatrixFromCuda(Matrix3);
+	cu->getMatrixFromCuda(Matrix3,cu);
 
-	
+	printf("-----result-time-----\n");
+	printf("line time = %f \n omp time = %f \n cuda time = %f \n", cu->timelinever, cu->timeompver, cu->timecudaver);
+
 	//provMat(Matrix, Matrix2, Matrix3);
 
 exit:

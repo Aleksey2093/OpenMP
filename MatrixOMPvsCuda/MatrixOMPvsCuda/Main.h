@@ -9,15 +9,111 @@
 #include <time.h>
 #include <omp.h>
 
-#define SIZE 5
+#define SIZE 9
 
 class Main
 {
 public:
-	double** getMatrixFromCuda(double** Matrix3);
+	double** getMatrixFromCuda(double** Matrix3, Main *cu);
 public:
-//	static double tim1;
-//	static double tim2;
-//	static double tim3;
+	double timelinever;
+	double timeompver;
+	double timecudaver;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 };
 
