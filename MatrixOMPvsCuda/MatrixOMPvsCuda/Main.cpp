@@ -9,7 +9,7 @@ double **mathLine(double **Matrix)
 {
 	double determinant = 1; double t;
 	double end, start = omp_get_wtime();
-	for (int i = 0; i < SIZE - 1; i++)
+	for (int i = 0; i < SIZE-1; i++)
 	{
 		int maxN = i;
 		double maxValue = fabs(Matrix[i][i]);
@@ -198,7 +198,7 @@ int main()
 	cu->getMatrixFromCuda(Matrix3,cu);
 
 	printf("-----result-time-----\n");
-	printf("line time = %f \n omp time = %f \n cuda time = %f \n", cu->timelinever, cu->timeompver, cu->timecudaver);
+	printf("line time = %f \nomp time = %f \ncuda time = %f \n", cu->timelinever, cu->timeompver, cu->timecudaver);
 
 	//provMat(Matrix, Matrix2, Matrix3);
 
